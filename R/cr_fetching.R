@@ -74,11 +74,10 @@ o_apc <- oa_trans %>%
   filter(!journal_full_title == "STEM CELLS Translational Medicine") %>%
   # 6. distinguish between individual hybrid and offsetting
   mutate(hybrid_type = ifelse(!is.na(euro), "Open APC (Hybrid)", "Open APC (TA)"))
-#' Include country information, which are available via Open APC OLAP server: 
-#' <https://github.com/OpenAPC/openapc-olap/blob/master/static/institutions.csv>
-country_apc <- readr::read_csv("https://raw.githubusercontent.com/OpenAPC/openapc-olap/master/static/institutions.csv") %>%
+#' Include country information
+country_apc <- readr::read_csv("https://raw.githubusercontent.com/OpenAPC/openapc-de/master/data/institutions.csv") %>%
   select(institution, country)
-countries <- readr::read_csv("https://raw.githubusercontent.com/OpenAPC/openapc-olap/master/static/institutions_transformative_agreements.csv") %>%
+countries <- readr::read_csv("https://raw.githubusercontent.com/OpenAPC/openapc-de/master/data/institutions_transformative_agreements.csv") %>%
   bind_rows(country_apc) %>%
   distinct() %>% 
   mutate(country_name = countrycode::countrycode(country, "iso3c", "country.name"))
@@ -215,7 +214,7 @@ hybrid_licenses <- jn_facets_df %>%
   filter(hybrid_license == TRUE) %>%
   left_join(jn_facets_df, by = c("journal_title" = "journal_title", "publisher" = "publisher"))
 #' We now know, whether and which open licenses were used by the journal in the 
-#' period 2013:2018. As a next step we want to validate that these 
+#' period 2013:2019. As a next step we want to validate that these 
 #' licenses were not issued for delayed open access articles by 
 #' additionally using  the self-explanatory filter `license.url` and
 #'  `license.delay`. We also obtain parsed metadata for these hybrid open
@@ -255,6 +254,6 @@ dplyr::bind_rows(cr_license_df$md) %>%
   jsonlite::stream_out(file("../data/hybrid_license_md.json"))
 #' only DOIs and how we retrieved them
 purrr::map(cr_license_df$md, "doi") %>%
-  data_frame(dois = ., issn = cr_license_df$issn, license = cr_license_df$license) %>%
+  tibble(dois = ., issn = cr_license_df$issn, license = cr_license_df$license) %>%
   jsonlite::stream_out(file("../data/hybrid_license_dois.json"))
 
